@@ -1,6 +1,11 @@
 <template>
   <div style="height: 100%" class="hello" id="main">
-    <h1>{{ noteTitle }}</h1>
+    <h1>{{ noteTitle }}
+      <el-button type="primary" @click="submitForm('ruleForm')"
+      >编辑</el-button>
+      <el-button type="primary" @click="addSubmitForm('ruleForm')"
+      >新增</el-button>
+    </h1>
     <mavon-editor style="min-height: 700px" ref="md" :subfield="false"
                   :defaultOpen="'preview'"
                   :editable="false"
@@ -33,7 +38,7 @@ export default {
   methods: {
     async increment (value, render) {
       // 更新组件状态
-      var url = 'http://127.0.0.1:8081/Note/selectNote?id=4'
+      var url = 'http://127.0.0.1:8081/Note/selectNote?noteId=' + this.$route.query.noteId
       console.log(url)
       // fetch(url, {
       //   method: 'get',
@@ -59,15 +64,37 @@ export default {
         this.mavonEditor = jsonData.noteParticulars
         this.noteTitle = jsonData.noteTitle
         console.log(jsonData.noteImgs)
-        for (var _img in this.noteImgs) {
+        for (let _img = 0; _img < jsonData.noteImgs.length; _img++) {
+          console.log(jsonData.noteImgs[_img])
+          console.log(jsonData.noteImgs[_img].imgUrl)
+          console.log(jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null)
           if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
-            console.log(jsonData.noteImgs[_img])
-            this.$refs.md.$imgUpdateByUrl(_img, jsonData.noteImgs[_img])
+            this.$refs.md.$imgUpdateByUrl(_img + 1, jsonData.noteImgs[_img].imgUrl)
           }
         }
+        // for (var _img in this.noteImgs) {
+        //   console.log(jsonData.noteImgs[_img])
+        //   console.log(jsonData.noteImgs[_img] !== 'null')
+        //   console.log(jsonData.noteImgs[_img] != null)
+        //   if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
+        //     this.$refs.md.$imgUpdateByUrl(_img, jsonData.noteImgs[_img])
+        //   }
+        // }
       } catch (err) {
         alert(err)
       }
+    },
+    submitForm (formName) {
+      // 将用户信息存储到sessionStorage中
+      sessionStorage.setItem('noteId', JSON.stringify(this.$route.query.noteId))
+      // 跳转页面到首页
+      this.$router.push('/HelloWorldCopy')
+    },
+    addSubmitForm (formName) {
+      // 跳转页面到首页
+      console.log('无连接跳转')
+      sessionStorage.setItem('noteId', JSON.stringify(0))
+      this.$router.push('/HelloWorldCopy')
     }
   }
 }

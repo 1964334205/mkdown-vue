@@ -1,8 +1,8 @@
 <template>
   <div style="height: 100%" class="hello" id="main">
-    <h1>第一份笔记</h1>
+    <h1>{{ noteTitle }}</h1>
     <button @click="uploadimg">upload</button>
-    <mavon-editor style="min-height: 700px" ref="md" @imgAdd="imgAdd" @imgDel="imgDel" @save="increment"></mavon-editor>
+    <mavon-editor style="min-height: 700px" ref="md" @imgAdd="imgAdd" @imgDel="imgDel" v-model="mavonEditor" @save="increment"></mavon-editor>
   </div>
 </template>
 
@@ -24,11 +24,77 @@ export default {
       imgUploadingUrl: 'http://127.0.0.1:8081/Img/Submit',
       node: {
         noteImgIds: '',
-        noteParticulars: ''
-      }
+        noteParticulars: '',
+        noteId: ''
+      },
+      noteTitle: '',
+      mavonEditor: ''
+    }
+  },
+  mounted: function () {
+    console.log('判断：' + sessionStorage.getItem('noteId'))
+    if (sessionStorage.getItem('noteId')) {
+      // 将用户信息存储到sessionStorage中
+      this.node.noteId = JSON.parse(sessionStorage.getItem('noteId'))
+      this.redaNoteToMavoneditor(this.node.noteId) // 需要触发的函数
+    } else {
+      console.log('跳转：' + this.node.noteId)
+      this.redaNoteToMavoneditor()
     }
   },
   methods: {
+    async redaNoteToMavoneditor (noteId) {
+      if (noteId === 0) {
+
+      } else {
+        // 更新组件状态
+        var url = 'http://127.0.0.1:8081/Note/selectNote?id=' + noteId
+        console.log(url)
+        // fetch(url, {
+        //   method: 'get',
+        //   mode: 'no-cors',
+        //   headers: {
+        //     'Content-Type': 'application/x-www-form-urlencoded'
+        //   }
+        // }).then(function (resp) {
+        //   console.log(resp)
+        //   return resp.text()
+        // }).then(function (text) {
+        //   console.log(text)
+        //   var obj = JSON.parse(text)
+        //   console.log(obj)
+        // })
+        try {
+          const response = await fetch(url, {
+            // mode: 'no-cors'
+          })
+          console.log(response)
+          const jsonData = await response.json()
+          console.log(jsonData)
+          this.mavonEditor = jsonData.noteParticulars
+          this.noteTitle = jsonData.noteTitle
+          console.log(jsonData.noteImgs)
+          for (let _img = 0; _img < jsonData.noteImgs.length; _img++) {
+            console.log(jsonData.noteImgs[_img])
+            console.log(jsonData.noteImgs[_img].imgUrl)
+            console.log(jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null)
+            if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
+              this.$refs.md.$imgUpdateByUrl(_img + 1, jsonData.noteImgs[_img].imgUrl)
+            }
+          }
+          // for (var _img in this.noteImgs) {
+          //   console.log(jsonData.noteImgs[_img])
+          //   console.log(jsonData.noteImgs[_img] !== 'null')
+          //   console.log(jsonData.noteImgs[_img] != null)
+          //   if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
+          //     this.$refs.md.$imgUpdateByUrl(_img, jsonData.noteImgs[_img])
+          //   }
+          // }
+        } catch (err) {
+          alert(err)
+        }
+      }
+    },
     async increment (value, render) {
       // 更新组件状态
       console.log(value.constructor.name)
