@@ -29,7 +29,12 @@ export default {
       text: '',
       mavonEditor: '',
       noteTitle: '',
-      noteImgs: []
+      noteImgs: [],
+      editOrAdd: {
+        noteId: '',
+        // 0为新增  1为更新
+        editOrAdd: 0
+      }
     }
   },
   mounted: function () {
@@ -86,14 +91,18 @@ export default {
     },
     submitForm (formName) {
       // 将用户信息存储到sessionStorage中
-      sessionStorage.setItem('noteId', JSON.stringify(this.$route.query.noteId))
-      // 跳转页面到首页
+      this.editOrAdd.noteId = this.$route.query.noteId
+      this.editOrAdd.editOrAdd = 1
+      sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
+      // 跳转页面到编辑页
       this.$router.push('/HelloWorldCopy')
     },
     addSubmitForm (formName) {
-      // 跳转页面到首页
+      // 跳转页面到编辑页
       console.log('无连接跳转')
-      sessionStorage.setItem('noteId', JSON.stringify(0))
+      this.editOrAdd.noteId = this.$route.query.noteId
+      this.editOrAdd.editOrAdd = 0
+      sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
       this.$router.push('/HelloWorldCopy')
     }
   }

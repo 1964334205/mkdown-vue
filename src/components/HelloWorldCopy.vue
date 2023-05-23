@@ -39,6 +39,7 @@ export default {
       this.redaNoteToMavoneditor(this.node.noteId) // 需要触发的函数
     } else {
       console.log('跳转：' + this.node.noteId)
+      this.node.noteId = JSON.parse(sessionStorage.getItem('noteId'))
       this.redaNoteToMavoneditor()
     }
   },
@@ -48,7 +49,7 @@ export default {
 
       } else {
         // 更新组件状态
-        var url = 'http://127.0.0.1:8081/Note/selectNote?id=' + noteId
+        var url = 'http://127.0.0.1:8081/Note/selectNote?noteId=' + noteId
         console.log(url)
         // fetch(url, {
         //   method: 'get',
