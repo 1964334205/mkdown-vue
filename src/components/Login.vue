@@ -72,7 +72,7 @@ export default {
           // 将用户信息存储到sessionStorage中
           sessionStorage.setItem('userInfo', JSON.stringify(jsonData.data))
           // 跳转页面到首页
-          this.$router.push('/indexss')
+          this.$router.push('/EsIndexs')
           // 显示后端响应的成功信息
           this.$message({
             message: jsonData.msg,

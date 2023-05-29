@@ -1,8 +1,16 @@
 <template>
-  <div style="height: 100%" class="hello" id="main">
-    <h1>{{ noteTitle }}</h1>
-    <button @click="uploadimg">upload</button>
-    <mavon-editor style="min-height: 700px" ref="md" @imgAdd="imgAdd" @imgDel="imgDel" v-model="mavonEditor" @save="increment"></mavon-editor>
+  <div style="height: 100%;" class="hello" id="main">
+    <div style="width:100%">
+      <h1 style="width:100%">{{ node.noteTitle }}
+        <el-button style="float: right;" type="primary" @click="deleteNote('ruleForm')"
+        >删除笔记</el-button>
+        <el-button style="float: right;" type="primary" @click="returnindex('ruleForm')"
+        >返回</el-button>
+      </h1>
+    </div>
+    <el-input v-model="node.noteTitle" placeholder="请输入标题"></el-input>
+    <!-- <button @click="uploadimg">upload</button> -->
+    <mavon-editor style="min-height: 700px" ref="md" @imgAdd="imgAdd" @imgDel="imgDel" v-model="node.noteParticulars" @save="increment"></mavon-editor>
   </div>
 </template>
 
@@ -25,22 +33,28 @@ export default {
       node: {
         noteImgIds: '',
         noteParticulars: '',
-        noteId: ''
+        noteId: 0,
+        noteTitle: '',
+        userId: 0,
+        esId: 0
       },
-      noteTitle: '',
-      mavonEditor: ''
+      mavonEditor: '',
+      imgplace: ''
     }
   },
   mounted: function () {
-    console.log('判断：' + sessionStorage.getItem('noteId'))
-    if (sessionStorage.getItem('noteId')) {
+    var editOrAdd = JSON.parse(sessionStorage.getItem('editOrAdd'))
+    console.log('判断：' + editOrAdd.userId)
+    if (editOrAdd.editOrAdd === 1) {
       // 将用户信息存储到sessionStorage中
-      this.node.noteId = JSON.parse(sessionStorage.getItem('noteId'))
+      this.node.noteId = editOrAdd.noteId
+      console.log('跳转：' + this.node.noteId)
+      this.node.userId = editOrAdd.userId
       this.redaNoteToMavoneditor(this.node.noteId) // 需要触发的函数
     } else {
-      console.log('跳转：' + this.node.noteId)
-      this.node.noteId = JSON.parse(sessionStorage.getItem('noteId'))
-      this.redaNoteToMavoneditor()
+      // this.node.noteId = JSON.parse(sessionStorage.getItem('noteId'))
+      this.node.userId = editOrAdd.userId
+      this.redaNoteToMavoneditor(0)
     }
   },
   methods: {
@@ -72,17 +86,22 @@ export default {
           console.log(response)
           const jsonData = await response.json()
           console.log(jsonData)
-          this.mavonEditor = jsonData.noteParticulars
-          this.noteTitle = jsonData.noteTitle
+          this.node.noteParticulars = jsonData.noteParticulars
+          this.node.noteImgIds = jsonData.noteImgIds
+          this.node.noteTitle = jsonData.noteTitle
+          this.node.userId = jsonData.userId
+          this.node.noteId = jsonData.noteId
+          this.node.edId = jsonData.edId
           console.log(jsonData.noteImgs)
-          for (let _img = 0; _img < jsonData.noteImgs.length; _img++) {
-            console.log(jsonData.noteImgs[_img])
-            console.log(jsonData.noteImgs[_img].imgUrl)
-            console.log(jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null)
-            if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
-              this.$refs.md.$imgUpdateByUrl(_img + 1, jsonData.noteImgs[_img].imgUrl)
-            }
-          }
+          // for (let _img = 0; _img < jsonData.noteImgs.length; _img++) {
+          //   console.log(jsonData.noteImgs[_img])
+          //   console.log(jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null)
+          //   if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
+          //     // this.$refs.md.$imgNum(_img + 1)
+          //     // this.$refs.md.$imgUpdateByUrl(_img + 1, jsonData.noteImgs[_img].imgUrl)
+          //     console.log('jsonData.imgplace: ' + this.imgplace)
+          //   }
+          // }
           // for (var _img in this.noteImgs) {
           //   console.log(jsonData.noteImgs[_img])
           //   console.log(jsonData.noteImgs[_img] !== 'null')
@@ -98,9 +117,11 @@ export default {
     },
     async increment (value, render) {
       // 更新组件状态
-      console.log(value.constructor.name)
-      console.log(value)
-      console.log(render)
+      // console.log(value.constructor.name)
+      // console.log(value)
+      // console.log(render)
+      console.log('note信息')
+      console.log(this.node)
       var url = 'http://127.0.0.1:8081/Note/Submit'
       this.node.noteParticulars = value
       try {
@@ -115,6 +136,12 @@ export default {
         console.log(response)
         const jsonData = await response.json()
         console.log(jsonData)
+        if (jsonData) {
+          this.$message({
+            message: '保存成功',
+            type: 'success'
+          })
+        }
       } catch (err) {
         alert(err)
       }
@@ -131,12 +158,21 @@ export default {
           method: 'POST',
           body: formdata
         })
+        const loading = this.$loading({
+          lock: true,
+          text: 'Loading',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        })
+        setTimeout(() => {
+          loading.close()
+        }, 3000)
         console.log(response)
         const jsonData = await response.json()
         console.log(jsonData)
         this.node.noteImgIds = this.node.noteImgIds + jsonData.imgId + ','
-        console.log(this.node.noteImgIds)
-        this.$refs.md.$imgUpdateByUrl(pos, jsonData.imgUrl)
+        // this.$refs.md.$imgUpdateByUrl(2, jsonData.imgUrl)
+        this.$refs.md.$img2Url(pos, jsonData.imgUrl)
       } catch (err) {
         alert(err)
       }
@@ -164,6 +200,34 @@ export default {
       } catch (err) {
         alert(err)
       }
+    },
+    async deleteNote (formName) {
+      // 删除笔记
+    // var let const
+      var url = 'http://127.0.0.1:8081/Note/deleteNote?noteId=' + this.node.noteId
+      console.log(url)
+      try {
+        const response = await fetch(url, {
+          // mode: 'no-cors'
+        })
+        console.log(response)
+        const jsonData = await response.json()
+        console.log(jsonData)
+        if (jsonData) {
+          this.$message({
+            message: '删除成功',
+            type: 'success'
+          })
+          this.$router.push({path: '/EsIndexs'})
+        }
+      } catch (err) {
+        alert(err)
+      }
+    },
+    returnindex (formName) {
+      sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
+      // 跳转页面到编辑页
+      this.$router.push({path: '/EsIndexs'})
     }
   }
 }

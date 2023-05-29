@@ -1,10 +1,11 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import HelloWorld from '@/components/HelloWorld'
-import HelloWorldCopy from '@/components/HelloWorldCopy'
+import NoteEdit from '@/components/NoteEdit'
 import HelloWorldElement from '@/components/HelloWorldElement'
 import NoteSelect from '@/components/NoteSelect'
-import indexss from '@/components/indexss'
+// import indexs from '@/components/indexs'
+import EsIndexs from '@/components/EsIndexs'
 import ContainerIndex from '@/components/ContainerIndex'
 import Login from '@/components/Login'
 import Register from '@/components/Register'
@@ -20,19 +21,31 @@ export default new Router({
       component: HelloWorld
     },
     {
-      path: '/HelloWorldCopy',
-      name: 'HelloWorldCopy',
-      component: HelloWorldCopy
+      path: '/NoteEdit',
+      name: 'NoteEdit',
+      component: NoteEdit
     },
     {
       path: '/HelloWorldElement',
       name: 'HelloWorldElement',
       component: HelloWorldElement
     },
+    // {
+    //   path: '/indexs',
+    //   name: 'indexs',
+    //   component: indexs,
+    //   children: [
+    //     {
+    //       path: '/NoteSelect',
+    //       name: 'NoteSelect',
+    //       component: NoteSelect
+    //     }
+    //   ]
+    // },
     {
-      path: '/indexss',
-      name: 'indexss',
-      component: indexss,
+      path: '/EsIndexs',
+      name: 'EsIndexs',
+      component: EsIndexs,
       children: [
         {
           path: '/NoteSelect',

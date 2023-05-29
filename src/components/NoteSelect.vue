@@ -1,15 +1,18 @@
 <template>
   <div style="height: 100%" class="hello" id="main">
-    <h1>{{ noteTitle }}
-      <el-button type="primary" @click="submitForm('ruleForm')"
-      >编辑</el-button>
-      <el-button type="primary" @click="addSubmitForm('ruleForm')"
-      >新增</el-button>
-    </h1>
-    <mavon-editor style="min-height: 700px" ref="md" :subfield="false"
+    <div style="width:100%">
+      <h1 style="width:100%">{{ noteTitle }}
+        <el-button style="float: right;" type="primary" @click="submitForm('ruleForm')"
+        >编辑</el-button>
+      </h1>
+    </div>
+    <div tyle="width:100%">
+          <mavon-editor style="min-height: 700px" ref="md" :subfield="false"
                   :defaultOpen="'preview'"
                   :editable="false"
                   :toolbarsFlag="false"  v-model="mavonEditor" @save="increment"></mavon-editor>
+    </div>
+
   </div>
 </template>
 
@@ -31,7 +34,7 @@ export default {
       noteTitle: '',
       noteImgs: [],
       editOrAdd: {
-        noteId: '',
+        noteId: 0,
         // 0为新增  1为更新
         editOrAdd: 0
       }
@@ -44,21 +47,7 @@ export default {
     async increment (value, render) {
       // 更新组件状态
       var url = 'http://127.0.0.1:8081/Note/selectNote?noteId=' + this.$route.query.noteId
-      console.log(url)
-      // fetch(url, {
-      //   method: 'get',
-      //   mode: 'no-cors',
-      //   headers: {
-      //     'Content-Type': 'application/x-www-form-urlencoded'
-      //   }
-      // }).then(function (resp) {
-      //   console.log(resp)
-      //   return resp.text()
-      // }).then(function (text) {
-      //   console.log(text)
-      //   var obj = JSON.parse(text)
-      //   console.log(obj)
-      // })
+      this.editOrAdd.noteId = this.$route.query.noteId
       try {
         const response = await fetch(url, {
           // mode: 'no-cors'
@@ -68,15 +57,14 @@ export default {
         console.log(jsonData)
         this.mavonEditor = jsonData.noteParticulars
         this.noteTitle = jsonData.noteTitle
-        console.log(jsonData.noteImgs)
-        for (let _img = 0; _img < jsonData.noteImgs.length; _img++) {
-          console.log(jsonData.noteImgs[_img])
-          console.log(jsonData.noteImgs[_img].imgUrl)
-          console.log(jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null)
-          if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
-            this.$refs.md.$imgUpdateByUrl(_img + 1, jsonData.noteImgs[_img].imgUrl)
-          }
-        }
+        console.log(jsonData.noteImgs == null)
+        // for (let _img = 0; _img < jsonData.noteImgs.length; _img++) {
+        //   console.log(jsonData.noteImgs[_img])
+        //   console.log(jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null)
+        //   if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
+        //     this.$refs.md.$imgUpdateByUrl(_img + 1, jsonData.noteImgs[_img].imgUrl)
+        //   }
+        // }
         // for (var _img in this.noteImgs) {
         //   console.log(jsonData.noteImgs[_img])
         //   console.log(jsonData.noteImgs[_img] !== 'null')
@@ -90,21 +78,43 @@ export default {
       }
     },
     submitForm (formName) {
-      // 将用户信息存储到sessionStorage中
-      this.editOrAdd.noteId = this.$route.query.noteId
       this.editOrAdd.editOrAdd = 1
+      console.log('有连接跳转')
+      console.log(this.editOrAdd)
       sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
       // 跳转页面到编辑页
-      this.$router.push('/HelloWorldCopy')
-    },
-    addSubmitForm (formName) {
-      // 跳转页面到编辑页
-      console.log('无连接跳转')
-      this.editOrAdd.noteId = this.$route.query.noteId
-      this.editOrAdd.editOrAdd = 0
-      sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
-      this.$router.push('/HelloWorldCopy')
+      this.$router.push({path: '/NoteEdit'})
     }
+    // submitForm (formName) {
+    //   // 将用户信息存储到sessionStorage中
+    //   this.editOrAdd.noteId = this.$route.query.noteId
+    //   this.editOrAdd.editOrAdd = 1
+    //   sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
+    //   // 跳转页面到编辑页
+    //   this.$router.push('/HelloWorldCopy')
+    // },
+    // addSubmitForm (formName) {
+    //   // 跳转页面到编辑页
+    //   console.log('无连接跳转')
+    //   this.editOrAdd.noteId = this.$route.query.noteId
+    //   this.editOrAdd.editOrAdd = 0
+    //   sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
+    //   this.$router.push('/HelloWorldCopy')
+    // },
+    // async deleteNote (formName) {
+    //   var url = 'http://127.0.0.1:8081/Note/deleteNote?noteId=' + this.$route.query.noteId + '&esId=' + this.$route.query.esId
+    //   console.log(url)
+    //   try {
+    //     const response = await fetch(url, {
+    //       // mode: 'no-cors'
+    //     })
+    //     console.log(response)
+    //     const jsonData = await response.json()
+    //     console.log(jsonData)
+    //   } catch (err) {
+    //     alert(err)
+    //   }
+    // }
   }
 }
 </script>
