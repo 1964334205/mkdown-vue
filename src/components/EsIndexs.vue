@@ -134,7 +134,7 @@ export default {
         console.log(jsonData)
         if (jsonData) {
           this.notes = []
-          this.selectUserNote(this.editOrAdd.userId)
+          this.selectUserNote()
           this.$message({
             message: '删除成功',
             type: 'success'
@@ -158,7 +158,7 @@ export default {
           var note = notes[index]
           if (note != null) {
             // this.notes = this.notes();
-            this.notes.push({id: index, title: note.noteTitle, noteId: note.noteId, esId: note.esId, noteImgIds: note.noteImgIds})
+            this.notes.push({id: index, title: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds})
           } else {
             console.log('notes index ' + index + ' is null')
           }

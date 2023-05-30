@@ -68,12 +68,12 @@ export default {
       // 将用户信息存储到sessionStorage中
       this.userInfo = JSON.parse(sessionStorage.getItem('userInfo'))
     }
-    this.selectUserNote("123456789") // 需要触发的函数
+    this.selectUserNote() // 需要触发的函数
   },
   methods: {
-    async selectUserNote (userId) {
+    async selectUserNote () {
       // 更新组件状态
-      var url = 'http://127.0.0.1:8081/Note/selectUserNote?userId=' + userId
+      var url = 'http://127.0.0.1:8081/Note/selectUserNote'
       console.log(url)
       try {
         const response = await fetch(url, {
