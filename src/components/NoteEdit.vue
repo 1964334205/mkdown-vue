@@ -10,7 +10,9 @@
     </div>
     <el-input v-model="node.noteTitle" placeholder="请输入标题"></el-input>
     <!-- <button @click="uploadimg">upload</button> -->
-    <mavon-editor style="min-height: 700px" ref="md" @imgAdd="imgAdd" @imgDel="imgDel" v-model="node.noteParticulars" @save="increment"></mavon-editor>
+    <mavon-editor style="min-height: 700px" ref="md" @imgAdd="imgAddMkdown" @imgDel="imgDel" v-model="node.noteParticulars" @save="increment"
+      navigation=true
+    ></mavon-editor>
   </div>
 </template>
 
@@ -24,6 +26,137 @@ export default {
   components: {
     'mavon-editor': mavonEditor.mavonEditor
   },
+  // props: {
+  //   scrollStyle: {
+  //     // 是否渲染滚动条样式(webkit)
+  //     type: Boolean,
+  //     default: true
+  //   },
+  //   boxShadow: {
+  //     // 是否添加阴影
+  //     type: Boolean,
+  //     default: true
+  //   },
+  //   transition: {
+  //     // 是否开启动画过渡
+  //     type: Boolean,
+  //     default: true
+  //   },
+  //   autofocus: {
+  //     // 是否自动获取焦点
+  //     type: Boolean,
+  //     default: true
+  //   },
+  //   fontSize: {
+  //     // 字体大小
+  //     type: String,
+  //     default: '14px'
+  //   },
+  //   toolbarsBackground: {
+  //     // 工具栏背景色
+  //     type: String,
+  //     default: '#ffffff'
+  //   },
+  //   editorBackground: {
+  //     // TODO: 编辑栏背景色
+  //     type: String,
+  //     default: '#ffffff'
+  //   },
+  //   previewBackground: {
+  //     // 预览栏背景色
+  //     type: String,
+  //     default: '#fbfbfb'
+  //   },
+  //   boxShadowStyle: {
+  //     // 阴影样式
+  //     type: String,
+  //     default: '0 2px 12px 0 rgba(0, 0, 0, 0.1)'
+  //   },
+  //   help: {
+  //     type: String,
+  //     default: null
+  //   },
+  //   value: {
+  //     // 初始 value
+  //     type: String,
+  //     default: ''
+  //   },
+  //   language: {
+  //     // 初始语言
+  //     type: String,
+  //     default: 'zh-CN'
+  //   },
+  //   subfield: {
+  //     type: Boolean,
+  //     default: true
+  //   },
+  //   navigation: {
+  //     type: Boolean,
+  //     default: false
+  //   },
+  //   defaultOpen: {
+  //     type: String,
+  //     default: null
+  //   },
+  //   editable: {
+  //     // 是否开启编辑
+  //     type: Boolean,
+  //     default: true
+  //   },
+  //   toolbarsFlag: {
+  //     // 是否开启工具栏
+  //     type: Boolean,
+  //     default: true
+  //   },
+  //   html: {
+  //     // Enable HTML tags in source
+  //     type: Boolean,
+  //     default: true
+  //   },
+  //   xssOptions: {
+  //     // XSS 选项
+  //     type: [Object, Boolean],
+  //     default () {
+  //       return {}
+  //     }
+  //   },
+  //   codeStyle: {
+  //     // <code></code> 样式
+  //     type: String,
+  //     default () {
+  //       return 'github'
+  //     }
+  //   },
+  //   placeholder: {
+  //     // 编辑器默认内容
+  //     type: String,
+  //     default: null
+  //   },
+  //   ishljs: {
+  //     type: Boolean,
+  //     default: true
+  //   },
+  //   externalLink: {
+  //     type: [Object, Boolean],
+  //     default: true
+  //   },
+  //   imageFilter: {
+  //     type: Function,
+  //     default: null
+  //   },
+  //   imageClick: {
+  //     type: Function,
+  //     default: null
+  //   },
+  //   tabSize: {
+  //     type: Number,
+  //     default: 0
+  //   },
+  //   shortCut: {
+  //     type: Boolean,
+  //     default: true
+  //   }
+  // },
   data () {
     return {
       msg: 'Welcome to Your Vue.js App',
@@ -34,26 +167,21 @@ export default {
         noteImgIds: '',
         noteParticulars: '',
         noteId: 0,
-        noteTitle: '',
-        userId: 0,
-        esId: 0
+        noteTitle: ''
       },
       mavonEditor: '',
-      imgplace: ''
+      navigation: false
     }
   },
   mounted: function () {
     var editOrAdd = JSON.parse(sessionStorage.getItem('editOrAdd'))
-    console.log('判断：' + editOrAdd.userId)
     if (editOrAdd.editOrAdd === 1) {
       // 将用户信息存储到sessionStorage中
       this.node.noteId = editOrAdd.noteId
       console.log('跳转：' + this.node.noteId)
-      this.node.userId = editOrAdd.userId
       this.redaNoteToMavoneditor(this.node.noteId) // 需要触发的函数
     } else {
       // this.node.noteId = JSON.parse(sessionStorage.getItem('noteId'))
-      this.node.userId = editOrAdd.userId
       this.redaNoteToMavoneditor(0)
     }
   },
@@ -89,9 +217,7 @@ export default {
           this.node.noteParticulars = jsonData.noteParticulars
           this.node.noteImgIds = jsonData.noteImgIds
           this.node.noteTitle = jsonData.noteTitle
-          this.node.userId = jsonData.userId
           this.node.noteId = jsonData.noteId
-          this.node.edId = jsonData.edId
           console.log(jsonData.noteImgs)
           // for (let _img = 0; _img < jsonData.noteImgs.length; _img++) {
           //   console.log(jsonData.noteImgs[_img])
