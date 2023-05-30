@@ -19,7 +19,7 @@
         <el-header>
           <el-input style="width:250px" v-model="noteTitleAndNoteParticulars" placeholder="请输入查询内容"></el-input>
           <el-button type="primary" @click="selectNoteEs('ruleForm')"
-          >查询</el-button>
+        >查询</el-button>
           <!-- <el-button type="primary" @click="submitForm('ruleForm')"
           >编辑</el-button> -->
         </el-header>
@@ -55,14 +55,14 @@ export default {
       NoteSelectUrl: '',
       userInfo: {
         userName: '',
-        userId: 0
+        userId: ''
       },
       editOrAdd: {
-        noteId: 0,
+        noteId: '',
         // 0为新增  1为更新
         editOrAdd: 0,
-        esId: 0,
-        userId: 0,
+        esId: '',
+        userId: '',
         noteImgIds: ''
       },
       noteTitleAndNoteParticulars: ''
