@@ -33,10 +33,8 @@ export default {
       node: {
         noteImgIds: '',
         noteParticulars: '',
-        noteId: 0,
-        noteTitle: '',
-        userId: 0,
-        esId: 0
+        noteId: null,
+        noteTitle: ''
       },
       mavonEditor: '',
       imgplace: ''
@@ -44,22 +42,19 @@ export default {
   },
   mounted: function () {
     var editOrAdd = JSON.parse(sessionStorage.getItem('editOrAdd'))
-    console.log('判断：' + editOrAdd.userId)
     if (editOrAdd.editOrAdd === 1) {
       // 将用户信息存储到sessionStorage中
       this.node.noteId = editOrAdd.noteId
       console.log('跳转：' + this.node.noteId)
-      this.node.userId = editOrAdd.userId
       this.redaNoteToMavoneditor(this.node.noteId) // 需要触发的函数
     } else {
       // this.node.noteId = JSON.parse(sessionStorage.getItem('noteId'))
-      this.node.userId = editOrAdd.userId
-      this.redaNoteToMavoneditor(0)
+      this.redaNoteToMavoneditor(null)
     }
   },
   methods: {
     async redaNoteToMavoneditor (noteId) {
-      if (noteId === 0) {
+      if (noteId === null) {
 
       } else {
         // 更新组件状态
@@ -89,9 +84,7 @@ export default {
           this.node.noteParticulars = jsonData.noteParticulars
           this.node.noteImgIds = jsonData.noteImgIds
           this.node.noteTitle = jsonData.noteTitle
-          this.node.userId = jsonData.userId
           this.node.noteId = jsonData.noteId
-          this.node.edId = jsonData.edId
           console.log(jsonData.noteImgs)
           // for (let _img = 0; _img < jsonData.noteImgs.length; _img++) {
           //   console.log(jsonData.noteImgs[_img])
@@ -136,9 +129,14 @@ export default {
         console.log(response)
         const jsonData = await response.json()
         console.log(jsonData)
-        if (jsonData) {
+        if (jsonData !== null) {
           this.$message({
             message: '保存成功',
+            type: 'success'
+          })
+        } else {
+          this.$message({
+            message: '保存失败',
             type: 'success'
           })
         }

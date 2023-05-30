@@ -7,7 +7,7 @@
             <template slot="title"><i class="el-icon-s-order"></i>笔记</template>
             <el-menu-item-group id="note">
               <el-menu-item v-for="note in notes" :key="note.id">
-                <router-link :to="{path:'/NoteSelect',query:{noteId: note.noteId,esId:note.edId}}"  @click.native="selectNote(note.noteId,note.esId,note.noteImgIds)">{{ note.title }}</router-link>
+                <router-link :to="{path:'/NoteSelect',query:{noteId: note.noteId}}"  @click.native="selectNote(note.noteId,note.noteImgIds)">{{ note.title }}</router-link>
               </el-menu-item>
             </el-menu-item-group>
           </el-submenu>
@@ -53,15 +53,12 @@ export default {
       notes: [],
       NoteSelectUrl: '',
       userInfo: {
-        userName: '',
-        userId: ''
+        userName: ''
       },
       editOrAdd: {
         noteId: '',
         // 0为新增  1为更新
         editOrAdd: 0,
-        esId: '',
-        userId: '',
         noteImgIds: ''
       }
     }
@@ -71,8 +68,7 @@ export default {
       // 将用户信息存储到sessionStorage中
       this.userInfo = JSON.parse(sessionStorage.getItem('userInfo'))
     }
-    this.editOrAdd.userId = this.userInfo.userId
-    this.selectUserNote(this.userInfo.userId) // 需要触发的函数
+    this.selectUserNote("123456789") // 需要触发的函数
   },
   methods: {
     async selectUserNote (userId) {
@@ -98,7 +94,7 @@ export default {
           console.log(note)
           if (note != null) {
             // this.notes = this.notes();
-            this.notes.push({id: index, title: note.noteTitle, noteId: note.noteId, esId: note.esId, noteImgIds: note.noteImgIds})
+            this.notes.push({id: index, title: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds})
           } else {
             console.log('notes index ' + index + ' is null')
           }
@@ -107,8 +103,7 @@ export default {
         alert(err)
       }
     },
-    selectNote (noteId, esId, noteImgIds) {
-      this.editOrAdd.esId = esId
+    selectNote (noteId, noteImgIds) {
       this.editOrAdd.noteId = noteId
       this.editOrAdd.noteImgIds = noteImgIds
       console.log('添加跳转内容')
@@ -125,14 +120,13 @@ export default {
     addSubmitForm (formName) {
       // 跳转页面到新增页
       console.log('无连接跳转')
-      console.log(this.editOrAdd.userId)
       this.editOrAdd.editOrAdd = 0
       sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
       this.$router.push({path: '/NoteEdit'})
     },
     async deleteNote (formName) {
       // 删除笔记
-      var url = 'http://127.0.0.1:8081/Note/deleteNote?noteId=' + this.editOrAdd.noteId + '&esId=' + this.editOrAdd.esId + '&noteImgIds=' + this.editOrAdd.noteImgIds
+      var url = 'http://127.0.0.1:8081/Note/deleteNote?noteId=' + this.editOrAdd.noteId + '&noteImgIds=' + this.editOrAdd.noteImgIds
       console.log(url)
       try {
         const response = await fetch(url, {
@@ -143,7 +137,7 @@ export default {
         console.log(jsonData)
         if (jsonData) {
           this.notes = []
-          this.selectUserNote(this.editOrAdd.userId)
+          this.selectUserNote()
           this.$message({
             message: '删除成功',
             type: 'success'
