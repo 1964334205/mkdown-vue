@@ -10,7 +10,7 @@
           <mavon-editor style="min-height: 700px" ref="md" :subfield="false"
                   :defaultOpen="'preview'"
                   :editable="false"
-                  :toolbarsFlag="false"  v-model="mavonEditor" @save="increment"></mavon-editor>
+                  :toolbarsFlag="false"  v-model="mavonEditor"></mavon-editor>
     </div>
 
   </div>
@@ -34,17 +34,18 @@ export default {
       noteTitle: '',
       noteImgs: [],
       editOrAdd: {
-        noteId: 0,
+        noteId: null,
         // 0为新增  1为更新
         editOrAdd: 0
       }
     }
   },
   mounted: function () {
-    this.increment() // 需要触发的函数
+    console.log('跳转页面  ' + this.$route.query.noteId)
+    this.selectNote() // 需要触发的函数
   },
   methods: {
-    async increment (value, render) {
+    async selectNote () {
       // 更新组件状态
       var url = 'http://127.0.0.1:8081/Note/selectNote?noteId=' + this.$route.query.noteId
       this.editOrAdd.noteId = this.$route.query.noteId

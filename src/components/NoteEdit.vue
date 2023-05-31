@@ -10,8 +10,8 @@
     </div>
     <el-input v-model="node.noteTitle" placeholder="请输入标题"></el-input>
     <!-- <button @click="uploadimg">upload</button> -->
-    <mavon-editor style="min-height: 700px" ref="md" @imgAdd="imgAddMkdown" @imgDel="imgDel" v-model="node.noteParticulars" @save="increment"
-      navigation=true
+    <mavon-editor style="min-height: 700px" ref="md" @imgAdd="imgAdd" @imgDel="imgDel" v-model="node.noteParticulars" @save="increment"
+      navigation = navigation
     ></mavon-editor>
   </div>
 </template>
@@ -26,137 +26,6 @@ export default {
   components: {
     'mavon-editor': mavonEditor.mavonEditor
   },
-  // props: {
-  //   scrollStyle: {
-  //     // 是否渲染滚动条样式(webkit)
-  //     type: Boolean,
-  //     default: true
-  //   },
-  //   boxShadow: {
-  //     // 是否添加阴影
-  //     type: Boolean,
-  //     default: true
-  //   },
-  //   transition: {
-  //     // 是否开启动画过渡
-  //     type: Boolean,
-  //     default: true
-  //   },
-  //   autofocus: {
-  //     // 是否自动获取焦点
-  //     type: Boolean,
-  //     default: true
-  //   },
-  //   fontSize: {
-  //     // 字体大小
-  //     type: String,
-  //     default: '14px'
-  //   },
-  //   toolbarsBackground: {
-  //     // 工具栏背景色
-  //     type: String,
-  //     default: '#ffffff'
-  //   },
-  //   editorBackground: {
-  //     // TODO: 编辑栏背景色
-  //     type: String,
-  //     default: '#ffffff'
-  //   },
-  //   previewBackground: {
-  //     // 预览栏背景色
-  //     type: String,
-  //     default: '#fbfbfb'
-  //   },
-  //   boxShadowStyle: {
-  //     // 阴影样式
-  //     type: String,
-  //     default: '0 2px 12px 0 rgba(0, 0, 0, 0.1)'
-  //   },
-  //   help: {
-  //     type: String,
-  //     default: null
-  //   },
-  //   value: {
-  //     // 初始 value
-  //     type: String,
-  //     default: ''
-  //   },
-  //   language: {
-  //     // 初始语言
-  //     type: String,
-  //     default: 'zh-CN'
-  //   },
-  //   subfield: {
-  //     type: Boolean,
-  //     default: true
-  //   },
-  //   navigation: {
-  //     type: Boolean,
-  //     default: false
-  //   },
-  //   defaultOpen: {
-  //     type: String,
-  //     default: null
-  //   },
-  //   editable: {
-  //     // 是否开启编辑
-  //     type: Boolean,
-  //     default: true
-  //   },
-  //   toolbarsFlag: {
-  //     // 是否开启工具栏
-  //     type: Boolean,
-  //     default: true
-  //   },
-  //   html: {
-  //     // Enable HTML tags in source
-  //     type: Boolean,
-  //     default: true
-  //   },
-  //   xssOptions: {
-  //     // XSS 选项
-  //     type: [Object, Boolean],
-  //     default () {
-  //       return {}
-  //     }
-  //   },
-  //   codeStyle: {
-  //     // <code></code> 样式
-  //     type: String,
-  //     default () {
-  //       return 'github'
-  //     }
-  //   },
-  //   placeholder: {
-  //     // 编辑器默认内容
-  //     type: String,
-  //     default: null
-  //   },
-  //   ishljs: {
-  //     type: Boolean,
-  //     default: true
-  //   },
-  //   externalLink: {
-  //     type: [Object, Boolean],
-  //     default: true
-  //   },
-  //   imageFilter: {
-  //     type: Function,
-  //     default: null
-  //   },
-  //   imageClick: {
-  //     type: Function,
-  //     default: null
-  //   },
-  //   tabSize: {
-  //     type: Number,
-  //     default: 0
-  //   },
-  //   shortCut: {
-  //     type: Boolean,
-  //     default: true
-  //   }
-  // },
   data () {
     return {
       msg: 'Welcome to Your Vue.js App',
@@ -170,7 +39,7 @@ export default {
         noteTitle: ''
       },
       mavonEditor: '',
-      navigation: false
+      navigation: true
     }
   },
   mounted: function () {
@@ -182,13 +51,14 @@ export default {
       this.redaNoteToMavoneditor(this.node.noteId) // 需要触发的函数
     } else {
       // this.node.noteId = JSON.parse(sessionStorage.getItem('noteId'))
+      console.log('新增：' + this.node.noteId)
       this.redaNoteToMavoneditor(null)
     }
   },
   methods: {
     async redaNoteToMavoneditor (noteId) {
       if (noteId === null) {
-
+        console.log('redaNoteToMavoneditor = ' + this.node.noteId)
       } else {
         // 更新组件状态
         var url = 'http://127.0.0.1:8081/Note/selectNote?noteId=' + noteId
@@ -248,6 +118,7 @@ export default {
       // console.log(render)
       console.log('note信息')
       console.log(this.node)
+      console.log(JSON.stringify(this.node))
       var url = 'http://127.0.0.1:8081/Note/Submit'
       this.node.noteParticulars = value
       try {
@@ -263,6 +134,7 @@ export default {
         const jsonData = await response.json()
         console.log(jsonData)
         if (jsonData !== null) {
+          this.node.noteId = jsonData
           this.$message({
             message: '保存成功',
             type: 'success'

@@ -9,7 +9,7 @@
             <template slot="title"><i class="el-icon-s-order"></i>笔记</template>
             <el-menu-item-group id="note">
               <el-menu-item v-for="note in notes" :key="note.id">
-                <router-link :to="{path:'/NoteSelect',query:{noteId: note.noteId}}"  @click.native="selectNote(note.noteId,note.noteImgIds)">{{ note.title }}</router-link>
+                <router-link :to="{path:'/NoteSelect',query:{noteId: note.noteId}}" redirect  @click.native="selectNote(note.noteId)">{{ note.title }}</router-link>
               </el-menu-item>
             </el-menu-item-group>
           </el-submenu>
@@ -24,6 +24,7 @@
           >编辑</el-button> -->
         </el-header>
         <el-main >
+
           <router-view :key="$route.fullPath"></router-view>
         </el-main>
       </el-container>
@@ -98,11 +99,10 @@ export default {
         alert(err)
       }
     },
-    selectNote (noteId, noteImgIds) {
+    selectNote (noteId) {
       this.editOrAdd.noteId = noteId
-      this.editOrAdd.noteImgIds = noteImgIds
       console.log('添加跳转内容')
-      console.log(noteImgIds)
+      console.log(noteId)
     },
     submitForm (formName) {
       this.editOrAdd.editOrAdd = 1
@@ -116,7 +116,7 @@ export default {
       // 跳转页面到新增页
       console.log('无连接跳转')
       this.editOrAdd.editOrAdd = 0
-      console.log(this.editOrAdd.noteId)
+      console.log('this.editOrAdd.noteId = ' + this.editOrAdd.noteId)
       sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
       this.$router.push({path: '/NoteEdit'})
     },

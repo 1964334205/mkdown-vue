@@ -47,6 +47,10 @@ export default new Router({
       name: 'EsIndexs',
       component: EsIndexs,
       children: [
+        // {
+        //   path: '/',
+        //   redirect: '/NoteSelect'
+        // },
         {
           path: '/NoteSelect',
           name: 'NoteSelect',
