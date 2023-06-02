@@ -6,10 +6,10 @@
         >新增</el-button>
         <el-menu :default-openeds="['1', '3']">
           <el-submenu index="1">
-            <template slot="title"><i class="el-icon-s-order"></i>笔记</template>
+            <template slot="noteTitle"><i class="el-icon-s-order"></i>笔记</template>
             <el-menu-item-group id="note">
               <el-menu-item v-for="note in notes" :key="note.id">
-                <router-link :to="{path:'/NoteSelect',query:{noteId: note.noteId}}" redirect  @click.native="selectNote(note.noteId)">{{ note.title }}</router-link>
+                <router-link :to="{path:'/NoteSelect',query:{noteId: note.noteId}}" redirect  @click.native="selectNote(note.noteId)">{{ note.noteTitle }}</router-link>
               </el-menu-item>
             </el-menu-item-group>
           </el-submenu>
@@ -24,8 +24,8 @@
           >编辑</el-button> -->
         </el-header>
         <el-main >
-
-          <router-view :key="$route.fullPath"></router-view>
+          <NoteSelect ref="NoteSelect"></NoteSelect>
+          <!-- <router-view :key="$route.fullPath"></router-view> -->
         </el-main>
       </el-container>
 
@@ -43,7 +43,11 @@
   }
 </style>
 <script>
+import NoteSelect from './NoteSelect.vue'
 export default {
+  components: {
+    NoteSelect
+  },
   data () {
     const item = {
       date: '2016-05-02',
@@ -90,7 +94,7 @@ export default {
           console.log(note)
           if (note != null) {
             // this.notes = this.notes();
-            this.notes.push({id: index, title: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds})
+            this.notes.push({id: index, noteTitle: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds, noteParticulars: note.noteParticulars})
           } else {
             console.log('notes index ' + index + ' is null')
           }
@@ -100,6 +104,14 @@ export default {
       }
     },
     selectNote (noteId) {
+      console.log('需选择' + noteId)
+      for (let index = 0; index < this.notes.length; index++) {
+        console.log('搜索' + this.notes[index].noteId)
+        if (this.notes[index].noteId === noteId) {
+          console.log(this.notes[index])
+          this.$refs.NoteSelect.EsIndesxrEfsNoteSelect(this.notes[index].noteId, this.notes[index].noteTitle, this.notes[index].noteParticulars)
+        }
+      }
       this.editOrAdd.noteId = noteId
       console.log('添加跳转内容')
       console.log(noteId)
@@ -158,7 +170,7 @@ export default {
           var note = notes[index]
           if (note != null) {
             // this.notes = this.notes();
-            this.notes.push({id: index, title: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds})
+            this.notes.push({id: index, noteTitle: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds, noteParticulars: note.noteParticulars})
           } else {
             console.log('notes index ' + index + ' is null')
           }

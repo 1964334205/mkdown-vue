@@ -85,6 +85,12 @@ export default {
       sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
       // 跳转页面到编辑页
       this.$router.push({path: '/NoteEdit'})
+    },
+    EsIndesxrEfsNoteSelect (noteId, noteTitle, noteParticulars) {
+      console.log('父调用字：' + noteParticulars)
+      this.mavonEditor = noteParticulars
+      this.noteTitle = noteTitle
+      this.editOrAdd.noteId = noteId
     }
     // submitForm (formName) {
     //   // 将用户信息存储到sessionStorage中
