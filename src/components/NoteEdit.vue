@@ -228,7 +228,7 @@ export default {
       }
     },
     returnindex (formName) {
-      sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
+      // sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
       // 跳转页面到编辑页
       this.$router.push({path: '/EsIndexs'})
     }

@@ -2,12 +2,14 @@
   <div>
     <el-container style="height: 800px; border: 1px solid #eee">
       <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
+        <el-button type="primary" @click="addSubmitForm('ruleForm')"
+        >新增</el-button>
         <el-menu :default-openeds="['1', '3']">
           <el-submenu index="1">
-            <template slot="title"><i class="el-icon-s-order"></i>笔记</template>
+            <template slot="noteTitle"><i class="el-icon-s-order"></i>笔记</template>
             <el-menu-item-group id="note">
               <el-menu-item v-for="note in notes" :key="note.id">
-                <router-link :to="{path:'/NoteSelect',query:{noteId: note.noteId}}"  @click.native="selectNote(note.noteId,note.noteImgIds)">{{ note.title }}</router-link>
+                <router-link :to="{path:'/NoteSelect',query:{noteId: note.noteId}}" redirect  @click.native="selectNote(note.noteId)">{{ note.noteTitle }}</router-link>
               </el-menu-item>
             </el-menu-item-group>
           </el-submenu>
@@ -15,15 +17,15 @@
       </el-aside>
       <el-container>
         <el-header>
-          <el-button type="primary" @click="submitForm('ruleForm')"
-          >编辑</el-button>
-          <el-button type="primary" @click="addSubmitForm('ruleForm')"
-          >新增</el-button>
-          <el-button type="primary" @click="deleteNote('ruleForm')"
-          >删除笔记</el-button>
+          <el-input style="width:250px" v-model="noteTitleAndNoteParticulars" placeholder="请输入查询内容"></el-input>
+          <el-button type="primary" @click="selectNoteEs('ruleForm')"
+        >查询</el-button>
+          <!-- <el-button type="primary" @click="submitForm('ruleForm')"
+          >编辑</el-button> -->
         </el-header>
         <el-main >
-          <router-view :key="$route.fullPath"></router-view>
+          <NoteSelect ref="NoteSelect"></NoteSelect>
+          <!-- <router-view :key="$route.fullPath"></router-view> -->
         </el-main>
       </el-container>
 
@@ -41,7 +43,11 @@
   }
 </style>
 <script>
+import NoteSelect from './NoteSelect.vue'
 export default {
+  components: {
+    NoteSelect
+  },
   data () {
     const item = {
       date: '2016-05-02',
@@ -56,11 +62,12 @@ export default {
         userName: ''
       },
       editOrAdd: {
-        noteId: '',
+        noteId: null,
         // 0为新增  1为更新
         editOrAdd: 0,
         noteImgIds: ''
-      }
+      },
+      noteTitleAndNoteParticulars: ''
     }
   },
   mounted: function () {
@@ -80,21 +87,14 @@ export default {
           // mode: 'no-cors'
         })
         console.log(response)
-        // [{id:1, content: aab}, null]
         const notes = await response.json()
-        // console.log(this.notes)
-
-        // this.notes = notes
-        console.log(notes.length)
-        console.log(this.notes)
-
-        console.log(notes)
+        console.log(this.editOrAdd.noteId)
         for (let index = 0; index < notes.length; index++) {
           var note = notes[index]
           console.log(note)
           if (note != null) {
             // this.notes = this.notes();
-            this.notes.push({id: index, title: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds})
+            this.notes.push({id: index, noteTitle: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds, noteParticulars: note.noteParticulars})
           } else {
             console.log('notes index ' + index + ' is null')
           }
@@ -103,11 +103,18 @@ export default {
         alert(err)
       }
     },
-    selectNote (noteId, noteImgIds) {
+    selectNote (noteId) {
+      console.log('需选择' + noteId)
+      for (let index = 0; index < this.notes.length; index++) {
+        console.log('搜索' + this.notes[index].noteId)
+        if (this.notes[index].noteId === noteId) {
+          console.log(this.notes[index])
+          this.$refs.NoteSelect.EsIndesxrEfsNoteSelect(this.notes[index].noteId, this.notes[index].noteTitle, this.notes[index].noteParticulars)
+        }
+      }
       this.editOrAdd.noteId = noteId
-      this.editOrAdd.noteImgIds = noteImgIds
       console.log('添加跳转内容')
-      console.log(noteImgIds)
+      console.log(noteId)
     },
     submitForm (formName) {
       this.editOrAdd.editOrAdd = 1
@@ -121,12 +128,14 @@ export default {
       // 跳转页面到新增页
       console.log('无连接跳转')
       this.editOrAdd.editOrAdd = 0
+      console.log('this.editOrAdd.noteId = ' + this.editOrAdd.noteId)
       sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
       this.$router.push({path: '/NoteEdit'})
     },
     async deleteNote (formName) {
       // 删除笔记
-      var url = 'http://127.0.0.1:8081/Note/deleteNote?noteId=' + this.editOrAdd.noteId + '&noteImgIds=' + this.editOrAdd.noteImgIds
+    // var let const
+      var url = 'http://127.0.0.1:8081/Note/deleteNote?noteId=' + this.editOrAdd.noteId
       console.log(url)
       try {
         const response = await fetch(url, {
@@ -146,6 +155,32 @@ export default {
       } catch (err) {
         alert(err)
       }
+    },
+    async selectNoteEs (formName) {
+      // this.notes = []
+      // // es查询笔记
+      // var url = 'http://127.0.0.1:8081/Note/selectNoteEs?noteTitleAndNoteParticulars=' + this.noteTitleAndNoteParticulars
+      // console.log(url)
+      // try {
+      //   const response = await fetch(url, {
+      //     // mode: 'no-cors'
+      //   })
+      //   const notes = await response.json()
+      //   for (let index = 0; index < notes.length; index++) {
+      //     var note = notes[index]
+      //     if (note != null) {
+      //       // this.notes = this.notes();
+      //       this.notes.push({id: index, noteTitle: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds, noteParticulars: note.noteParticulars})
+      //     } else {
+      //       console.log('notes index ' + index + ' is null')
+      //     }
+      //   }
+      // } catch (err) {
+      //   alert(err)
+      // }
+      sessionStorage.setItem('noteTitleAndNoteParticulars', JSON.stringify(this.noteTitleAndNoteParticulars))
+      // 跳转页面到首页
+      this.$router.push({path: '/EsIndexs'})
     }
   }
 }

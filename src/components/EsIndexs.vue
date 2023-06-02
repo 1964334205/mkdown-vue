@@ -2,8 +2,8 @@
   <div>
     <el-container style="height: 800px; border: 1px solid #eee">
       <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
-        <el-button type="primary" @click="addSubmitForm('ruleForm')"
-        >新增</el-button>
+        <el-button type="primary" @click="returnindex('ruleForm')"
+        >返回</el-button>
         <el-menu :default-openeds="['1', '3']">
           <el-submenu index="1">
             <template slot="noteTitle"><i class="el-icon-s-order"></i>笔记</template>
@@ -28,7 +28,6 @@
           <!-- <router-view :key="$route.fullPath"></router-view> -->
         </el-main>
       </el-container>
-
     </el-container>
   </div>
 </template>
@@ -71,11 +70,11 @@ export default {
     }
   },
   mounted: function () {
-    if (sessionStorage.getItem('userInfo')) {
+    if (sessionStorage.getItem('noteTitleAndNoteParticulars')) {
       // 将用户信息存储到sessionStorage中
-      this.userInfo = JSON.parse(sessionStorage.getItem('userInfo'))
+      this.noteTitleAndNoteParticulars = sessionStorage.getItem('noteTitleAndNoteParticulars')
     }
-    this.selectUserNote() // 需要触发的函数
+    this.selectNoteEs() // 需要触发的函数
   },
   methods: {
     async selectUserNote () {
@@ -178,6 +177,11 @@ export default {
       } catch (err) {
         alert(err)
       }
+    },
+    returnindex (formName) {
+      sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
+      // 跳转页面到首页
+      this.$router.push({path: '/indexs'})
     }
   }
 }
