@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>欢迎{{ userInfo.userName }}！您的 uid 为{{ userInfo.userId }}</h2>
+    <h2>欢迎{{ userInfo.userName }}！您的 uid 为{{ userInfo.id }}</h2>
     <router-link to="/login">
       <el-button> 登出 </el-button>
     </router-link>
@@ -12,7 +12,7 @@ export default {
     return {
       userInfo: {
         userName: '',
-        userId: null
+        id: null
       }
     }
   },

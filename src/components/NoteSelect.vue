@@ -1,8 +1,8 @@
 <template>
   <div style="height: 100%" class="hello" id="main">
     <div style="width:100%">
-      <h1 style="width:100%">{{ noteTitle }}
-        <el-button style="float: right;" type="primary" @click="submitForm('ruleForm')"
+      <h1 style="width:100%">{{ title }}
+        <el-button style="float: right;" v-if="this.editOrAdd.id" type="primary" @click="submitForm('ruleForm')"
         >编辑</el-button>
       </h1>
     </div>
@@ -28,73 +28,67 @@ export default {
   },
   data () {
     return {
-      msg: 'Welcome to Your Vue.js App',
-      text: '',
+      // 编辑器内容
       mavonEditor: '',
-      noteTitle: '',
-      noteImgs: [],
+      // 笔记标题
+      title: '',
+      // noteImgs: [],
+      // 笔记信息
       editOrAdd: {
-        noteId: null,
-        // 0为新增  1为更新
-        editOrAdd: 0
+        // 笔记id
+        id: null,
+        // 0为新增笔记  1为更新笔记
+        editOrAdd: 0,
+        // 区分index调用与Eslndexs调用 indexs页跳转：true   eslndexs页面跳转：false
+        isIndex: false
       }
     }
   },
   mounted: function () {
-    console.log('跳转页面  ' + this.$route.query.noteId)
-    this.selectNote() // 需要触发的函数
+    // this.selectNote() // 需要触发的函数
   },
   methods: {
-    async selectNote () {
-      // 更新组件状态
-      var url = 'http://127.0.0.1:8081/Note/selectNote?noteId=' + this.$route.query.noteId
-      this.editOrAdd.noteId = this.$route.query.noteId
-      try {
-        const response = await fetch(url, {
-          // mode: 'no-cors'
-        })
-        console.log(response)
-        const jsonData = await response.json()
-        console.log(jsonData)
-        this.mavonEditor = jsonData.noteParticulars
-        this.noteTitle = jsonData.noteTitle
-        console.log(jsonData.noteImgs == null)
-        // for (let _img = 0; _img < jsonData.noteImgs.length; _img++) {
-        //   console.log(jsonData.noteImgs[_img])
-        //   console.log(jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null)
-        //   if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
-        //     this.$refs.md.$imgUpdateByUrl(_img + 1, jsonData.noteImgs[_img].imgUrl)
-        //   }
-        // }
-        // for (var _img in this.noteImgs) {
-        //   console.log(jsonData.noteImgs[_img])
-        //   console.log(jsonData.noteImgs[_img] !== 'null')
-        //   console.log(jsonData.noteImgs[_img] != null)
-        //   if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
-        //     this.$refs.md.$imgUpdateByUrl(_img, jsonData.noteImgs[_img])
-        //   }
-        // }
-      } catch (err) {
-        alert(err)
-      }
-    },
+    // async selectNote () {
+    //   // 更新组件状态
+    //   var url = '/api/Note/selectNote?id=' + this.$route.query.id
+    //   this.editOrAdd.id = this.$route.query.id
+    //   try {
+    //     const response = await fetch(url, {
+    //       // mode: 'no-cors'
+    //     })
+    //     const jsonData = await response.json()
+    //     this.mavonEditor = jsonData.particulars
+    //     this.title = jsonData.title
+    //     // for (let _img = 0; _img < jsonData.noteImgs.length; _img++) {
+    //     //   if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
+    //     //     this.$refs.md.$imgUpdateByUrl(_img + 1, jsonData.noteImgs[_img].imgUrl)
+    //     //   }
+    //     // }
+    //     // for (var _img in this.noteImgs) {
+    //     //   if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
+    //     //     this.$refs.md.$imgUpdateByUrl(_img, jsonData.noteImgs[_img])
+    //     //   }
+    //     // }
+    //   } catch (err) {
+    //     alert(err)
+    //   }
+    // },
     submitForm (formName) {
+      // 设置笔记状态为修改
       this.editOrAdd.editOrAdd = 1
-      console.log('有连接跳转')
-      console.log(this.editOrAdd)
       sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
       // 跳转页面到编辑页
       this.$router.push({path: '/NoteEdit'})
-    },
-    EsIndesxrEfsNoteSelect (noteId, noteTitle, noteParticulars) {
-      console.log('父调用字：' + noteParticulars)
-      this.mavonEditor = noteParticulars
-      this.noteTitle = noteTitle
-      this.editOrAdd.noteId = noteId
     }
+    // EsIndesxrEfsNoteSelect (id, title, particulars, isIndex) {
+    //   this.mavonEditor = particulars
+    //   this.title = title
+    //   this.editOrAdd.id = id
+    //   this.editOrAdd.isIndex = isIndex
+    // }
     // submitForm (formName) {
     //   // 将用户信息存储到sessionStorage中
-    //   this.editOrAdd.noteId = this.$route.query.noteId
+    //   this.editOrAdd.id = this.$route.query.id
     //   this.editOrAdd.editOrAdd = 1
     //   sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
     //   // 跳转页面到编辑页
@@ -102,14 +96,13 @@ export default {
     // },
     // addSubmitForm (formName) {
     //   // 跳转页面到编辑页
-    //   console.log('无连接跳转')
-    //   this.editOrAdd.noteId = this.$route.query.noteId
+    //   this.editOrAdd.id = this.$route.query.id
     //   this.editOrAdd.editOrAdd = 0
     //   sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
     //   this.$router.push('/HelloWorldCopy')
     // },
     // async deleteNote (formName) {
-    //   var url = 'http://127.0.0.1:8081/Note/deleteNote?noteId=' + this.$route.query.noteId + '&esId=' + this.$route.query.esId
+    //   var url = 'http://127.0.0.1:8081/Note/deleteNote?id=' + this.$route.query.id + '&esId=' + this.$route.query.esId
     //   console.log(url)
     //   try {
     //     const response = await fetch(url, {

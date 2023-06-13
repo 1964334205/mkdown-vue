@@ -1,15 +1,18 @@
 <template>
   <div>
     <el-container style="height: 800px; border: 1px solid #eee">
-      <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
+      <el-aside width="15%" style="background-color: rgb(238, 241, 246)">
         <el-button type="primary" @click="addSubmitForm('ruleForm')"
         >新增</el-button>
-        <el-menu :default-openeds="['1', '3']">
+        <el-menu width="15%" :default-openeds="['1', '3']">
           <el-submenu index="1">
-            <template slot="noteTitle"><i class="el-icon-s-order"></i>笔记</template>
+            <template v-slot:title>
+              <i class="el-icon-s-order"></i>
+              <span>笔记</span>
+            </template>
             <el-menu-item-group id="note">
-              <el-menu-item v-for="note in notes" :key="note.id">
-                <router-link :to="{path:'/NoteSelect',query:{noteId: note.noteId}}" redirect  @click.native="selectNote(note.noteId)">{{ note.noteTitle }}</router-link>
+              <el-menu-item v-for="note in notes" :key="note.id" @click="selectNote(note.id)">
+                  {{ note.title }}
               </el-menu-item>
             </el-menu-item-group>
           </el-submenu>
@@ -19,12 +22,36 @@
         <el-header>
           <el-input style="width:250px" v-model="noteTitleAndNoteParticulars" placeholder="请输入查询内容"></el-input>
           <el-button type="primary" @click="selectNoteEs('ruleForm')"
-        >查询</el-button>
+          >查询
+          </el-button>
+          <!-- <el-button type="primary" style="margin-left: 50%" @click="logOut('ruleForm')"
+          >退出</el-button>
+          <el-button type="primary" @click="logOffValidate('ruleForm')"
+          >注销账户</el-button> -->
+          <!-- 欢迎：{{userName}} -->
+          <el-dropdown style="float: right;" @command="handleCommand">
+            <span class="el-dropdown-link">
+              {{userName}}<i class="el-icon-arrow-down el-icon--right"></i>
+            </span>
+            <template v-slot:dropdown>
+              <el-dropdown-menu >
+                <!-- <el-dropdown-item>用户名：{{userName}}</el-dropdown-item> -->
+                <el-dropdown-item command="logOut" >登出</el-dropdown-item>
+                <el-dropdown-item command="logOffValidate" >注销账户</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+            <!-- <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item>用户名：{{userName}}</el-dropdown-item>
+              <el-dropdown-item command="logOut" >登出</el-dropdown-item>
+              <el-dropdown-item command="logOffValidate" >注销账户</el-dropdown-item>
+            </el-dropdown-menu> -->
+          </el-dropdown>
           <!-- <el-button type="primary" @click="submitForm('ruleForm')"
           >编辑</el-button> -->
         </el-header>
         <el-main >
-          <NoteSelect ref="NoteSelect"></NoteSelect>
+          <h3 v-if="this.notes.length === 0">请新增或选择笔记</h3>
+          <NoteSelect v-else ref="NoteSelect"></NoteSelect>
           <!-- <router-view :key="$route.fullPath"></router-view> -->
         </el-main>
       </el-container>
@@ -49,52 +76,50 @@ export default {
     NoteSelect
   },
   data () {
-    const item = {
-      date: '2016-05-02',
-      name: '王小虎',
-      address: '上海市普陀区金沙江路 1518 弄'
-    }
     return {
-      tableData: Array(20).fill(item),
+      // 笔记列表
       notes: [],
-      NoteSelectUrl: '',
-      userInfo: {
-        userName: ''
-      },
+      // 用户名称
+      userName: '',
+      // 笔记信息
       editOrAdd: {
-        noteId: null,
-        // 0为新增  1为更新
+        // 笔记id
+        id: null,
+        // 0为新增笔记  1为更新笔记
         editOrAdd: 0,
-        noteImgIds: ''
+        // 区分index调用与Eslndexs调用 indexs页跳转：true   eslndexs页面跳转：false
+        isIndex: false
       },
+      // 搜索笔记输入框内容
       noteTitleAndNoteParticulars: ''
     }
   },
   mounted: function () {
-    if (sessionStorage.getItem('userInfo')) {
-      // 将用户信息存储到sessionStorage中
-      this.userInfo = JSON.parse(sessionStorage.getItem('userInfo'))
+    if (sessionStorage.getItem('userName')) {
+      // 设置用户名称
+      this.userName = JSON.parse(sessionStorage.getItem('userName'))
     }
+    // 页面内容初始化函数
     this.selectUserNote() // 需要触发的函数
   },
   methods: {
     async selectUserNote () {
-      // 更新组件状态
-      var url = 'http://127.0.0.1:8081/Note/selectUserNote'
-      console.log(url)
+      // 查询用户全部笔记
+      var url = '/api/Note/selectUserNote'
       try {
         const response = await fetch(url, {
           // mode: 'no-cors'
+          credentials: 'include'
         })
-        console.log(response)
+        // 获取回传信息,将内容转换为json格式
         const notes = await response.json()
-        console.log(this.editOrAdd.noteId)
+        // 循环对笔记进行操作
         for (let index = 0; index < notes.length; index++) {
+          // 获取一个笔记内容
           var note = notes[index]
-          console.log(note)
           if (note != null) {
-            // this.notes = this.notes();
-            this.notes.push({id: index, noteTitle: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds, noteParticulars: note.noteParticulars})
+            // 写入笔记内容
+            this.notes.push({title: note.title, id: note.id, particulars: note.particulars})
           } else {
             console.log('notes index ' + index + ' is null')
           }
@@ -103,84 +128,150 @@ export default {
         alert(err)
       }
     },
-    selectNote (noteId) {
-      console.log('需选择' + noteId)
+    // 设置NoteSelect组件展示笔记内容
+    selectNote (id) {
+      // 判断展示那个笔记内容
       for (let index = 0; index < this.notes.length; index++) {
-        console.log('搜索' + this.notes[index].noteId)
-        if (this.notes[index].noteId === noteId) {
-          console.log(this.notes[index])
-          this.$refs.NoteSelect.EsIndesxrEfsNoteSelect(this.notes[index].noteId, this.notes[index].noteTitle, this.notes[index].noteParticulars)
+        if (this.notes[index].id === id) {
+          // 调用子组件函数，展示笔记内容
+          this.$refs.NoteSelect.EsIndesxrEfsNoteSelect(this.notes[index].id, this.notes[index].title, this.notes[index].particulars, true)
         }
       }
-      this.editOrAdd.noteId = noteId
-      console.log('添加跳转内容')
-      console.log(noteId)
+      // 设置笔记id
+      this.editOrAdd.id = id
     },
-    submitForm (formName) {
-      this.editOrAdd.editOrAdd = 1
-      console.log('有连接跳转')
-      console.log(this.editOrAdd)
-      sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
-      // 跳转页面到编辑页
-      this.$router.push({path: '/NoteEdit'})
-    },
+    // submitForm (formName) {
+    //   this.editOrAdd.editOrAdd = 1
+    //   sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
+    //   // 跳转页面到编辑页
+    //   this.$router.push({path: '/NoteEdit'})
+    // },
+    // 新增笔记
     addSubmitForm (formName) {
-      // 跳转页面到新增页
-      console.log('无连接跳转')
+      // 设置为新增笔记
       this.editOrAdd.editOrAdd = 0
-      console.log('this.editOrAdd.noteId = ' + this.editOrAdd.noteId)
+      this.editOrAdd.isIndex = true
+      // 传递笔记信息
       sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
+      // 跳转到笔记编辑页
       this.$router.push({path: '/NoteEdit'})
     },
-    async deleteNote (formName) {
-      // 删除笔记
-    // var let const
-      var url = 'http://127.0.0.1:8081/Note/deleteNote?noteId=' + this.editOrAdd.noteId
-      console.log(url)
+    // async deleteNote (formName) {
+    //   // 删除笔记
+    //   var url = '/api/Note/deleteNote?id=' + this.editOrAdd.id
+    //   // console.log(url)
+    //   try {
+    //     const response = await fetch(url, {
+    //       // mode: 'no-cors'
+    //       credentials: 'include'
+    //     })
+    //     // 获取回传信息,将内容转换为json格式
+    //     const jsonData = await response.json()
+    //     if (jsonData) {
+    //       this.notes = []
+    //       this.selectUserNote()
+    //       this.$message({
+    //         message: '删除成功',
+    //         type: 'success'
+    //       })
+    //     }
+    //   } catch (err) {
+    //     alert(err)
+    //   }
+    // },
+    // 跳转到查询页
+    selectNoteEs (formName) {
+      // 传递查询参数
+      sessionStorage.setItem('noteTitleAndNoteParticulars', this.noteTitleAndNoteParticulars)
+      // 跳转页面到查询页
+      this.$router.push({path: '/EsIndexs'})
+    },
+    // 退出当前账户
+    async logOut (formName) {
+      // 清空用户名
+      this.userName = ''
+      // 退出URL
+      var url = '/api/User/logOut'
       try {
         const response = await fetch(url, {
           // mode: 'no-cors'
+          credentials: 'include'
         })
-        console.log(response)
+        // 获取回传信息,将内容转换为json格式
         const jsonData = await response.json()
-        console.log(jsonData)
-        if (jsonData) {
-          this.notes = []
-          this.selectUserNote()
+        if (jsonData.code === 200) {
           this.$message({
-            message: '删除成功',
+            message: jsonData.message,
             type: 'success'
+          })
+          // 跳转页面到登录页
+          this.$router.push({path: '/Login'})
+        } else {
+          this.$message({
+            message: jsonData.message,
+            type: 'warning'
           })
         }
       } catch (err) {
         alert(err)
       }
     },
-    async selectNoteEs (formName) {
-      // this.notes = []
-      // // es查询笔记
-      // var url = 'http://127.0.0.1:8081/Note/selectNoteEs?noteTitleAndNoteParticulars=' + this.noteTitleAndNoteParticulars
-      // console.log(url)
-      // try {
-      //   const response = await fetch(url, {
-      //     // mode: 'no-cors'
-      //   })
-      //   const notes = await response.json()
-      //   for (let index = 0; index < notes.length; index++) {
-      //     var note = notes[index]
-      //     if (note != null) {
-      //       // this.notes = this.notes();
-      //       this.notes.push({id: index, noteTitle: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds, noteParticulars: note.noteParticulars})
-      //     } else {
-      //       console.log('notes index ' + index + ' is null')
-      //     }
-      //   }
-      // } catch (err) {
-      //   alert(err)
-      // }
-      sessionStorage.setItem('noteTitleAndNoteParticulars', JSON.stringify(this.noteTitleAndNoteParticulars))
-      // 跳转页面到首页
-      this.$router.push({path: '/EsIndexs'})
+    // 注销账户
+    logOffValidate () {
+      // 确认用户是否注销
+      this.$confirm('是否确认注销账户(注销账户会删除所有笔记)?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        // 跳转注销函数
+        this.logOff()
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+    // 注销函数
+    async logOff (formName) {
+      // 清空用户名称
+      this.userName = ''
+      // 注销账户URL
+      var url = '/api/User/logOff'
+      try {
+        const response = await fetch(url, {
+          // mode: 'no-cors'
+          credentials: 'include'
+        })
+        // 获取回传信息,将内容转换为json格式
+        const jsonData = await response.json()
+        if (jsonData.code === 200) {
+          this.$message({
+            message: jsonData.data,
+            type: 'success'
+          })
+          // 跳转页面到登录页
+          this.$router.push({path: '/Login'})
+        } else {
+          this.$message({
+            message: jsonData.message,
+            type: 'warning'
+          })
+        }
+      } catch (err) {
+        alert(err)
+      }
+    },
+    // 下拉列表选择器
+    handleCommand (command) {
+      // 退出账户
+      if (command === 'logOut') {
+        this.logOut('ruleForm')
+      // 注销账户
+      } else if (command === 'logOffValidate') {
+        this.logOffValidate('ruleForm')
+      }
     }
   }
 }

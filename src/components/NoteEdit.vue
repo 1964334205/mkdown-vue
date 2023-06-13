@@ -1,21 +1,41 @@
 <template>
   <div style="height: 100%;" class="hello" id="main">
     <div style="width:100%">
-      <h1 style="width:100%">{{ node.noteTitle }}
-        <el-button style="float: right;" type="primary" @click="deleteNote('ruleForm')"
-        >删除笔记</el-button>
-        <el-button style="float: right;" type="primary" @click="returnindex('ruleForm')"
-        >返回</el-button>
-      </h1>
+      <input id="title"  v-model="node.title" placeholder="请输入标题"/>
+      <el-button class="editButton" type="primary" @click="deleteNote('ruleForm')" v-if="editOrAdd === 1"
+      >删除笔记</el-button>
+      <el-button class="editButton" type="primary" @click="returnindex('ruleForm')"
+      >返回</el-button>
     </div>
-    <el-input v-model="node.noteTitle" placeholder="请输入标题"></el-input>
-    <!-- <button @click="uploadimg">upload</button> -->
-    <mavon-editor style="min-height: 700px" ref="md" @imgAdd="imgAdd" @imgDel="imgDel" v-model="node.noteParticulars" @save="increment"
+    <mavon-editor style="min-height: 700px" ref="md" @imgAdd="imgAdd" @imgDel="imgDel" v-model="node.particulars" @change="hintSaveF" @save="increment"
       navigation = navigation
     ></mavon-editor>
   </div>
 </template>
+<style>
+  #title{
+    width:70%;
+    color:#000000;
+    margin-top:10px;
+    margin-bottom:15px;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size:3em;
+    height: 50px;
+  }
 
+  #title[type="text"]:focus {
+    outline: none;
+  }
+
+  button.editButton{
+    float: right;
+    margin-top:25px;
+    margin-bottom:15px;
+  }
+
+</style>
 <script>
 // Local Registration
 // import mavonEditor from 'mavon-editor'
@@ -31,96 +51,74 @@ export default {
       msg: 'Welcome to Your Vue.js App',
       text: '',
       img_file: {},
-      imgUploadingUrl: 'http://127.0.0.1:8081/Img/Submit',
+      imgUploadingUrl: '/api/Img/Submit',
       node: {
-        noteImgIds: '',
-        noteParticulars: '',
-        noteId: null,
-        noteTitle: ''
+        imgIds: '',
+        particulars: '',
+        id: null,
+        title: ''
       },
       mavonEditor: '',
-      navigation: true
+      navigation: true,
+      // 区分index调用与Eslndexs调用 indexs页跳转：true   eslndexs页面跳转：false
+      isIndex: false,
+      // 是否已进行编辑  未编辑:false  已编辑：true
+      hintSave: false,
+      // 排除第一次对编辑区赋值造成的，编辑器回调事件影响 赋值：true   未赋值：false
+      hintSaves: false,
+      // 0为新增笔记  1为修改笔记
+      editOrAdd: 2
     }
   },
   mounted: function () {
+    // 获取父页面传递的参数
     var editOrAdd = JSON.parse(sessionStorage.getItem('editOrAdd'))
     if (editOrAdd.editOrAdd === 1) {
-      // 将用户信息存储到sessionStorage中
-      this.node.noteId = editOrAdd.noteId
-      console.log('跳转：' + this.node.noteId)
-      this.redaNoteToMavoneditor(this.node.noteId) // 需要触发的函数
+      // 设置笔记为修改状态
+      this.editOrAdd = 1
+      // 设置笔记id
+      this.node.id = editOrAdd.id
+      // 区分调用方式
+      this.isIndex = editOrAdd.isIndex
+      this.redaNoteToMavoneditor(this.node.id) // 需要触发的函数
     } else {
-      // this.node.noteId = JSON.parse(sessionStorage.getItem('noteId'))
-      console.log('新增：' + this.node.noteId)
+      // 设置笔记为新增状态
+      this.editOrAdd = 0
+      // 区分调用方式
+      this.isIndex = editOrAdd.isIndex
       this.redaNoteToMavoneditor(null)
     }
   },
   methods: {
-    async redaNoteToMavoneditor (noteId) {
-      if (noteId === null) {
-        console.log('redaNoteToMavoneditor = ' + this.node.noteId)
+    async redaNoteToMavoneditor (id) {
+      if (id === null) {
+        this.hintSaves = false
       } else {
-        // 更新组件状态
-        var url = 'http://127.0.0.1:8081/Note/selectNote?noteId=' + noteId
-        console.log(url)
-        // fetch(url, {
-        //   method: 'get',
-        //   mode: 'no-cors',
-        //   headers: {
-        //     'Content-Type': 'application/x-www-form-urlencoded'
-        //   }
-        // }).then(function (resp) {
-        //   console.log(resp)
-        //   return resp.text()
-        // }).then(function (text) {
-        //   console.log(text)
-        //   var obj = JSON.parse(text)
-        //   console.log(obj)
-        // })
+        // 查询笔记内容
+        var url = '/api/Note/selectNote?id=' + id
         try {
           const response = await fetch(url, {
             // mode: 'no-cors'
           })
-          console.log(response)
+          // 获取回传信息,将内容转换为json格式
           const jsonData = await response.json()
-          console.log(jsonData)
-          this.node.noteParticulars = jsonData.noteParticulars
-          this.node.noteImgIds = jsonData.noteImgIds
-          this.node.noteTitle = jsonData.noteTitle
-          this.node.noteId = jsonData.noteId
-          console.log(jsonData.noteImgs)
-          // for (let _img = 0; _img < jsonData.noteImgs.length; _img++) {
-          //   console.log(jsonData.noteImgs[_img])
-          //   console.log(jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null)
-          //   if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
-          //     // this.$refs.md.$imgNum(_img + 1)
-          //     // this.$refs.md.$imgUpdateByUrl(_img + 1, jsonData.noteImgs[_img].imgUrl)
-          //     console.log('jsonData.imgplace: ' + this.imgplace)
-          //   }
-          // }
-          // for (var _img in this.noteImgs) {
-          //   console.log(jsonData.noteImgs[_img])
-          //   console.log(jsonData.noteImgs[_img] !== 'null')
-          //   console.log(jsonData.noteImgs[_img] != null)
-          //   if (jsonData.noteImgs[_img] !== 'null' && jsonData.noteImgs[_img] != null) {
-          //     this.$refs.md.$imgUpdateByUrl(_img, jsonData.noteImgs[_img])
-          //   }
-          // }
+          // 对变量进行赋值
+          this.node.particulars = jsonData.particulars
+          this.node.imgIds = jsonData.imgIds
+          this.node.title = jsonData.title
+          this.node.id = jsonData.id
         } catch (err) {
           alert(err)
         }
       }
+      // 排除第一次赋值造成的保存状态影响
+      this.hintSaves = true
     },
     async increment (value, render) {
-      // 更新组件状态
-      // console.log(value.constructor.name)
-      // console.log(value)
-      // console.log(render)
-      console.log('note信息')
-      console.log(this.node)
-      console.log(JSON.stringify(this.node))
-      var url = 'http://127.0.0.1:8081/Note/Submit'
-      this.node.noteParticulars = value
+      // 保存笔记的URL
+      var url = '/api/Note/Submit'
+      // 保存笔记内容
+      this.node.particulars = value
       try {
         const response = await fetch(url, {
           // mode: 'no-cors'
@@ -130,11 +128,15 @@ export default {
           },
           body: JSON.stringify(this.node)
         })
-        console.log(response)
+        // 获取回传信息,将内容转换为json格式
         const jsonData = await response.json()
-        console.log(jsonData)
         if (jsonData !== null) {
-          this.node.noteId = jsonData
+          // 获取回传笔记id
+          this.node.id = jsonData
+          // 修改笔记状态为已保存
+          this.hintSave = false
+          // 修改笔记状态为修改
+          this.editOrAdd = 1
           this.$message({
             message: '保存成功',
             type: 'success'
@@ -142,7 +144,7 @@ export default {
         } else {
           this.$message({
             message: '保存失败',
-            type: 'success'
+            type: 'warning'
           })
         }
       } catch (err) {
@@ -151,86 +153,112 @@ export default {
     },
     // 绑定@imgAdd event
     async imgAdd (pos, $file) {
-      // 缓存图片信息
-      console.log($file)
+      // 读取图片
       var formdata = new FormData()
       formdata.append('files', $file)
+      // 锁死页面
+      const loading = this.$loading({
+        lock: true,
+        text: 'Loading',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      })
       try {
         const response = await fetch(this.imgUploadingUrl, {
           // mode: 'no-cors'
           method: 'POST',
           body: formdata
         })
-        const loading = this.$loading({
-          lock: true,
-          text: 'Loading',
-          spinner: 'el-icon-loading',
-          background: 'rgba(0, 0, 0, 0.7)'
-        })
-        setTimeout(() => {
-          loading.close()
-        }, 3000)
-        console.log(response)
+        // 获取回传信息,将内容转换为json格式
         const jsonData = await response.json()
-        console.log(jsonData)
-        this.node.noteImgIds = this.node.noteImgIds + jsonData.imgId + ','
+        // 添加图片id
+        this.node.imgIds = this.node.imgIds + jsonData.id + ','
         // this.$refs.md.$imgUpdateByUrl(2, jsonData.imgUrl)
-        this.$refs.md.$img2Url(pos, jsonData.imgUrl)
+        // 使编辑器显示上传图片URL
+        this.$refs.md.$img2Url(pos, jsonData.url)
       } catch (err) {
         alert(err)
+      } finally {
+        // 结束页面锁死操作
+        loading.close()
       }
     },
+    // 编辑器内容保存后的回调函数
+    hintSaveF (value, render) {
+      // 判断是否为第一次查询完笔记进行复制时造成的编辑器回调
+      if (this.hintSaves) {
+        this.hintSaves = false
+      } else {
+        // 设置保存状态
+        this.hintSave = true
+      }
+    },
+    // 删除图片
     imgDel (pos) {
       delete this.img_file[pos]
     },
-    async uploadimg (e) {
-      // 第一步.将图片上传到服务器.
-      var formdata = new FormData()
-      console.log(this.img_file)
-      for (var _img in this.img_file) {
-        formdata.append('files', this.img_file[_img])
-      }
-      console.log(formdata.get('files'))
-      try {
-        const response = await fetch(this.imgUploadingUrl, {
-          // mode: 'no-cors'
-          method: 'POST',
-          body: formdata
-        })
-        console.log(response)
-        const jsonData = await response.json()
-        console.log(jsonData)
-      } catch (err) {
-        alert(err)
-      }
-    },
+    // 删除笔记
     async deleteNote (formName) {
       // 删除笔记
     // var let const
-      var url = 'http://127.0.0.1:8081/Note/deleteNote?noteId=' + this.node.noteId
-      console.log(url)
+      var url = '/api/Note/deleteNote?id=' + this.node.id
+      // 锁死页面
+      const loading = this.$loading({
+        lock: true,
+        text: 'Loading',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      })
       try {
         const response = await fetch(url, {
           // mode: 'no-cors'
         })
-        console.log(response)
+        // 获取回传信息,将内容转换为json格式
         const jsonData = await response.json()
-        console.log(jsonData)
         if (jsonData) {
           this.$message({
             message: '删除成功',
             type: 'success'
           })
-          this.$router.push({path: '/EsIndexs'})
+          // 判断那个页面调用，并返回
+          if (this.isIndex) {
+            this.$router.push({path: '/indexs'})
+          } else {
+            this.$router.push({path: '/EsIndexs'})
+          }
         }
       } catch (err) {
         alert(err)
+      } finally {
+        // 关闭锁死操作
+        loading.close()
       }
     },
     returnindex (formName) {
-      // sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
-      // 跳转页面到编辑页
-      this.$router.push({path: '/EsIndexs'})
+      // 判断笔记是否已发生编辑
+      if (this.hintSave) {
+        // 发生编辑后提示用户保存笔记
+        this.$confirm('请按CTRL+S保存,否则点击"取消"退出编辑?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+        }).catch(() => {
+          // 判断那个页面调用，并返回
+          if (this.isIndex) {
+            this.$router.push({path: '/indexs'})
+          } else {
+            this.$router.push({path: '/EsIndexs'})
+          }
+        })
+      } else {
+        // 判断那个页面调用，并返回
+        if (this.isIndex) {
+          this.$router.push({path: '/indexs'})
+        } else {
+          this.$router.push({path: '/EsIndexs'})
+        }
+      }
     }
   }
 }

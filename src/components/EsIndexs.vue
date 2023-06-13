@@ -1,33 +1,38 @@
 <template>
   <div>
     <el-container style="height: 800px; border: 1px solid #eee">
-      <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
-        <el-button type="primary" @click="returnindex('ruleForm')"
-        >返回</el-button>
-        <el-menu :default-openeds="['1', '3']">
-          <el-submenu index="1">
-            <template slot="noteTitle"><i class="el-icon-s-order"></i>笔记</template>
-            <el-menu-item-group id="note">
-              <el-menu-item v-for="note in notes" :key="note.id">
-                <router-link :to="{path:'/NoteSelect',query:{noteId: note.noteId}}" redirect  @click.native="selectNote(note.noteId)">{{ note.noteTitle }}</router-link>
-              </el-menu-item>
-            </el-menu-item-group>
-          </el-submenu>
-        </el-menu>
-      </el-aside>
-      <el-container>
-        <el-header>
-          <el-input style="width:250px" v-model="noteTitleAndNoteParticulars" placeholder="请输入查询内容"></el-input>
+      <el-aside width="100%" style="background-color: rgb(238, 241, 246)">
+        <el-input v-model="noteTitleAndNoteParticulars" placeholder="请输入查询内容"></el-input>
           <el-button type="primary" @click="selectNoteEs('ruleForm')"
         >查询</el-button>
-          <!-- <el-button type="primary" @click="submitForm('ruleForm')"
-          >编辑</el-button> -->
-        </el-header>
-        <el-main >
-          <NoteSelect ref="NoteSelect"></NoteSelect>
-          <!-- <router-view :key="$route.fullPath"></router-view> -->
-        </el-main>
-      </el-container>
+        <el-button type="primary" @click="returnindex('ruleForm')"
+        >返回</el-button>
+        <el-menu>
+          <!-- <el-submenu v-for="note in notes" :key="note.id" :index="note.id">
+            <template slot="title">
+              <i class="el-icon-s-order"></i>
+              <span>{{ note.title }}</span>
+            </template>
+            <el-menu-item-group>
+              <el-menu-item>
+                {{note.particulars}}
+              </el-menu-item>
+            </el-menu-item-group>
+          </el-submenu> -->
+          <div class="note" v-for="note in notes" :key="note.id" >
+            <div style="margin-top: 20px;">
+              <a @click="submitForm(note.id)">
+                <span style="font: medium bold; font-size:2vw; color:dodgerblue;" v-html="note.titleHighlight"></span>
+              </a>
+            </div>
+            <div style="margin-top:10px">
+              <span style="font-size:1vw; color:black;" v-html="note.particularsHighlight">
+              </span>
+            </div>
+            <div style="height:30px"/>
+          </div>
+        </el-menu>
+      </el-aside>
     </el-container>
   </div>
 </template>
@@ -40,6 +45,13 @@
   .el-aside {
     color: #333;
   }
+  div.note > div > a > span > em{
+    color:red;
+  }
+  div.note > div > span > em{
+    color:red;
+  }
+
 </style>
 <script>
 import NoteSelect from './NoteSelect.vue'
@@ -48,128 +60,135 @@ export default {
     NoteSelect
   },
   data () {
-    const item = {
-      date: '2016-05-02',
-      name: '王小虎',
-      address: '上海市普陀区金沙江路 1518 弄'
-    }
     return {
-      tableData: Array(20).fill(item),
+      // 笔记列表
       notes: [],
-      NoteSelectUrl: '',
-      userInfo: {
-        userName: ''
-      },
+      // 笔记状态
       editOrAdd: {
-        noteId: null,
-        // 0为新增  1为更新
-        editOrAdd: 0,
-        noteImgIds: ''
+        // 笔记id
+        id: null,
+        // 0为新增笔记  1为更新笔记
+        editOrAdd: 0
       },
+      // 搜索笔记输入框内容
       noteTitleAndNoteParticulars: ''
     }
   },
   mounted: function () {
     if (sessionStorage.getItem('noteTitleAndNoteParticulars')) {
-      // 将用户信息存储到sessionStorage中
+      // 获取indexs页面输入框内容
       this.noteTitleAndNoteParticulars = sessionStorage.getItem('noteTitleAndNoteParticulars')
     }
+    // 页面初始化函数
     this.selectNoteEs() // 需要触发的函数
   },
   methods: {
-    async selectUserNote () {
-      // 更新组件状态
-      var url = 'http://127.0.0.1:8081/Note/selectUserNote'
-      console.log(url)
-      try {
-        const response = await fetch(url, {
-          // mode: 'no-cors'
-        })
-        console.log(response)
-        const notes = await response.json()
-        console.log(this.editOrAdd.noteId)
-        for (let index = 0; index < notes.length; index++) {
-          var note = notes[index]
-          console.log(note)
-          if (note != null) {
-            // this.notes = this.notes();
-            this.notes.push({id: index, noteTitle: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds, noteParticulars: note.noteParticulars})
-          } else {
-            console.log('notes index ' + index + ' is null')
-          }
-        }
-      } catch (err) {
-        alert(err)
-      }
-    },
-    selectNote (noteId) {
-      console.log('需选择' + noteId)
-      for (let index = 0; index < this.notes.length; index++) {
-        console.log('搜索' + this.notes[index].noteId)
-        if (this.notes[index].noteId === noteId) {
-          console.log(this.notes[index])
-          this.$refs.NoteSelect.EsIndesxrEfsNoteSelect(this.notes[index].noteId, this.notes[index].noteTitle, this.notes[index].noteParticulars)
-        }
-      }
-      this.editOrAdd.noteId = noteId
-      console.log('添加跳转内容')
-      console.log(noteId)
-    },
-    submitForm (formName) {
+    // // 查询笔记
+    // async selectUserNote () {
+    //   // 查询笔记URL
+    //   var url = '/api/Note/selectUserNote'
+    //   try {
+    //     const response = await fetch(url, {
+    //       // mode: 'no-cors'
+    //     })
+    //     // 获取回传信息,将内容转换为json格式
+    //     const notes = await response.json()
+    //     // 循环获取笔记
+    //     for (let index = 0; index < notes.length; index++) {
+    //       // 获取一个笔记
+    //       var note = notes[index]
+    //       if (note != null) {
+    //         this.notes = []
+    //         if (!note.titleHighlight) {
+    //           note.titleHighlight = note.title
+    //         }
+    //         if (!note.particularsHighlight) {
+    //           note.particularsHighlight = note.particulars
+    //         }
+    //         this.notes.push({id: note.id, titleHighlight: note.titleHighlight, particularsHighlight: note.particularsHighlight})
+    //       } else {
+    //         console.log('notes index ' + index + ' is null')
+    //       }
+    //     }
+    //   } catch (err) {
+    //     alert(err)
+    //   }
+    // },
+    // selectNote (id) {
+    //   for (let index = 0; index < this.notes.length; index++) {
+    //     if (this.notes[index].id === id) {
+    //       this.$refs.NoteSelect.EsIndesxrEfsNoteSelect(this.notes[index].id, this.notes[index].title, this.notes[index].particulars)
+    //     }
+    //   }
+    //   this.editOrAdd.id = id
+    // },
+    // 跳转到笔记编辑页
+    submitForm (id) {
+      // 设置笔记状态为修改
       this.editOrAdd.editOrAdd = 1
-      console.log('有连接跳转')
-      console.log(this.editOrAdd)
+      // 设置笔记id
+      this.editOrAdd.id = id
+      // 置空搜索框
+      this.noteTitleAndNoteParticulars = ''
+      // 传递笔记状态信息
       sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
       // 跳转页面到编辑页
       this.$router.push({path: '/NoteEdit'})
     },
-    addSubmitForm (formName) {
-      // 跳转页面到新增页
-      console.log('无连接跳转')
-      this.editOrAdd.editOrAdd = 0
-      console.log('this.editOrAdd.noteId = ' + this.editOrAdd.noteId)
-      sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
-      this.$router.push({path: '/NoteEdit'})
-    },
-    async deleteNote (formName) {
-      // 删除笔记
-    // var let const
-      var url = 'http://127.0.0.1:8081/Note/deleteNote?noteId=' + this.editOrAdd.noteId
-      console.log(url)
-      try {
-        const response = await fetch(url, {
-          // mode: 'no-cors'
-        })
-        console.log(response)
-        const jsonData = await response.json()
-        console.log(jsonData)
-        if (jsonData) {
-          this.notes = []
-          this.selectUserNote()
-          this.$message({
-            message: '删除成功',
-            type: 'success'
-          })
-        }
-      } catch (err) {
-        alert(err)
-      }
-    },
+    // addSubmitForm (formName) {
+    //   // 跳转页面到新增页
+    //   this.editOrAdd.editOrAdd = 0
+    //   sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
+    //   this.$router.push({path: '/NoteEdit'})
+    // },
+    // async deleteNote (formName) {
+    //   // 删除笔记
+    // // var let const
+    //   var url = '/api/Note/deleteNote?id=' + this.editOrAdd.id
+    //   try {
+    //     const response = await fetch(url, {
+    //       // mode: 'no-cors'
+    //     })
+    //     const jsonData = await response.json()
+    //     if (jsonData) {
+    //       this.notes = []
+    //       this.selectUserNote()
+    //       this.$message({
+    //         message: '删除成功',
+    //         type: 'success'
+    //       })
+    //     }
+    //   } catch (err) {
+    //     alert(err)
+    //   }
+    // },
+    // 初始化页面
     async selectNoteEs (formName) {
-      this.notes = []
       // es查询笔记
-      var url = 'http://127.0.0.1:8081/Note/selectNoteEs?noteTitleAndNoteParticulars=' + this.noteTitleAndNoteParticulars
-      console.log(url)
+      var url = '/api/Note/selectNoteEs?noteTitleAndNoteParticulars=' + this.noteTitleAndNoteParticulars
       try {
         const response = await fetch(url, {
           // mode: 'no-cors'
         })
+        // 获取回传信息,将内容转换为json格式
         const notes = await response.json()
+        // 置空原来的笔记列表
+        this.notes = []
+        // 循环获取笔记内容
         for (let index = 0; index < notes.length; index++) {
+          // 获取一个笔记内容
           var note = notes[index]
           if (note != null) {
-            // this.notes = this.notes();
-            this.notes.push({id: index, noteTitle: note.noteTitle, noteId: note.noteId, noteImgIds: note.noteImgIds, noteParticulars: note.noteParticulars})
+            if (!note.titleHighlight) {
+              // 获取笔记标题
+              note.titleHighlight = note.title
+            }
+            if (!note.particularsHighlight) {
+              // 获取笔记内容
+              note.particularsHighlight = note.particulars
+            }
+            // 写入笔记列表
+            this.notes.push({titleHighlight: note.titleHighlight, id: note.id, particularsHighlight: note.particularsHighlight})
           } else {
             console.log('notes index ' + index + ' is null')
           }
@@ -178,6 +197,7 @@ export default {
         alert(err)
       }
     },
+    // 返回到indexs页面
     returnindex (formName) {
       sessionStorage.setItem('editOrAdd', JSON.stringify(this.editOrAdd))
       // 跳转页面到首页
